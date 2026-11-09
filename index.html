@@ -129,6 +129,8 @@ main { flex: 1; display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: f
 .left { flex: 1 1 var(--side); min-width: 0; display: flex; flex-wrap: wrap; gap: var(--sp-5); align-content: flex-start; }
 h2 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; }
 .note { font-size: var(--fs-xs); color: var(--c-text-3); }
+.text-btn { padding: 0; border: 0; background: none; font-size: var(--fs-xs); color: var(--c-text-2); cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; text-decoration-color: var(--c-line-strong); }
+.text-btn:hover { color: var(--c-text); }
 
 /* my bosses */
 .favs { flex: 1 1 30rem; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
@@ -263,7 +265,7 @@ footer {
   <main>
     <div class="left">
       <section class="favs" aria-labelledby="favs-h">
-        <h2 id="favs-h">Мої боси</h2>
+        <div class="sec-head"><h2 id="favs-h">Мої боси</h2><button type="button" class="text-btn" id="copy-link" title="Посилання з твоїм списком: відкрий його на іншому пристрої або збережи в закладки">Скопіювати посилання на список</button></div>
         <div id="cards"></div>
       </section>
       <section class="upcoming" aria-labelledby="up-h">
@@ -302,7 +304,22 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
-let favs = new Set(store.get("favs", ["111021", "111023"]));
+// "Мої боси" live in the link (#111021,111023) so one bookmark carries them to any device;
+// localStorage keeps them for visits without a list in the link.
+const KNOWN = new Set(BOSSES.map((b) => b.id));
+function favsFromHash() {
+  const h = decodeURIComponent(location.hash.slice(1)).trim();
+  if (!h) return null;
+  if (h === "-") return [];
+  const ids = h.split(/[,\s]+/).filter((x) => KNOWN.has(x));
+  return ids.length ? ids : null;
+}
+function writeHash() {
+  const h = favs.size ? [...favs].join(",") : "-";
+  try { history.replaceState(null, "", `${location.pathname}${location.search}#${h}`); } catch { location.hash = h; }
+}
+let favs = new Set(favsFromHash() ?? store.get("favs", ["111021", "111023"]));
+store.set("favs", [...favs]);
 let filter = store.get("filter", "all");
 if (!["all", "up", "soon", "mine"].includes(filter)) filter = "all";
 let feed = store.get("feed", null);
@@ -516,7 +533,7 @@ async function load() {
 document.addEventListener("click", (ev) => {
   const t = ev.target.closest("[data-fav],[data-filter],[data-act]");
   if (!t) return;
-  if (t.dataset.fav) { const id = t.dataset.fav; favs.has(id) ? favs.delete(id) : favs.add(id); store.set("favs", [...favs]); }
+  if (t.dataset.fav) { const id = t.dataset.fav; favs.has(id) ? favs.delete(id) : favs.add(id); store.set("favs", [...favs]); writeHash(); }
   else if (t.dataset.filter) { filter = t.dataset.filter; store.set("filter", filter); }
   else if (t.dataset.act === "clear-q") { $("q").value = ""; }
   else if (t.dataset.act === "all") { filter = "all"; store.set("filter", filter); $("q").value = ""; }
@@ -535,6 +552,18 @@ $("notify").addEventListener("click", async () => {
   store.set("notify", notifyOn); renderNotify();
 });
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+window.addEventListener("hashchange", () => {
+  const ids = favsFromHash();
+  if (ids) { favs = new Set(ids); store.set("favs", ids); render(); }
+});
+$("copy-link").addEventListener("click", async () => {
+  writeHash();
+  const btn = $("copy-link"), url = location.href, was = btn.textContent;
+  try { await navigator.clipboard.writeText(url); btn.textContent = "Скопійовано"; }
+  catch { window.prompt("Скопіюй посилання:", url); }
+  setTimeout(() => { btn.textContent = was; }, 2000);
+});
+writeHash();
 
 renderNotify();
 render();
