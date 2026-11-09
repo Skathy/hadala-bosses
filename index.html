@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Боси Altgard · Hadala</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Design: Claude Design "Altgard Bosses", screen 1a (upcoming A, list A); tokens from 5a as given. */
+:root {
+  color-scheme: dark;
+  --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, monospace;
+
+  --c-bg: oklch(0.165 0.004 250);
+  --c-surface: oklch(0.2 0.004 250);
+  --c-raised: oklch(0.24 0.004 250);
+  --c-line: oklch(0.29 0.004 250);
+  --c-line-strong: oklch(0.38 0.004 250);
+  --c-skeleton: oklch(0.28 0.004 250);
+  --c-text: oklch(0.95 0.003 250);
+  --c-text-2: oklch(0.77 0.004 250);
+  --c-text-3: oklch(0.63 0.004 250);
+
+  --c-up: oklch(0.8 0.14 150);
+  --c-up-bg: oklch(0.8 0.14 150 / 0.12);
+  --c-soon: oklch(0.8 0.14 80);
+  --c-soon-bg: oklch(0.8 0.14 80 / 0.12);
+  --c-late: oklch(0.8 0.14 30);
+  --c-late-bg: oklch(0.8 0.14 30 / 0.12);
+
+  --fs-xs: clamp(0.75rem, 0.734rem + 0.065vw, 0.8125rem);
+  --fs-sm: clamp(0.8125rem, 0.797rem + 0.065vw, 0.875rem);
+  --fs-base: clamp(0.9375rem, 0.922rem + 0.065vw, 1rem);
+  --fs-md: clamp(1rem, 0.952rem + 0.196vw, 1.1875rem);
+  --fs-lg: clamp(1.0625rem, 0.983rem + 0.327vw, 1.375rem);
+  --fs-xl: clamp(1.375rem, 1.279rem + 0.392vw, 1.75rem);
+  --fs-timer: clamp(2.5rem, 2.309rem + 0.784vw, 3.25rem);
+  --lh-tight: 1.15;
+  --lh-body: 1.35;
+
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: clamp(0.75rem, 0.686rem + 0.261vw, 1rem);
+  --sp-5: clamp(1rem, 0.873rem + 0.523vw, 1.5rem);
+  --sp-6: clamp(1.25rem, 1.059rem + 0.784vw, 2rem);
+
+  --r-1: 0.25rem;
+  --r-2: 0.5rem;
+  --ctl-h: 2.5rem;
+  --side: 32rem;
+  --col-min: 34rem;
+  --col-resp: 4.5rem;
+  --col-state: 8.5rem;
+  --col-timer: 6.5rem;
+  --stale-opacity: 0.6;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; min-height: 100dvh;
+  background: var(--c-bg); color: var(--c-text);
+  font-family: var(--font-ui); font-size: var(--fs-base); line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--c-text-2); outline-offset: 2px; }
+.num { font-family: var(--font-num); }
+.sk { display: inline-block; border-radius: var(--r-1); background: var(--c-skeleton); }
+
+.app {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; gap: var(--sp-4);
+  padding-block: max(var(--sp-5), env(safe-area-inset-top, 0px)) max(var(--sp-5), env(safe-area-inset-bottom, 0px));
+  padding-left: max(var(--sp-5), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sp-5), env(safe-area-inset-right, 0px));
+}
+
+/* state marks: the word, a colour and a shape, never colour alone */
+.mark { width: 0.5rem; height: 0.5rem; flex: none; display: inline-block; }
+.k-up   { --k: var(--c-up);     --kbg: var(--c-up-bg);   --kt: var(--c-up);     --kbar: var(--c-up); }
+.k-soon { --k: var(--c-soon);   --kbg: var(--c-soon-bg); --kt: var(--c-soon);   --kbar: var(--c-soon); }
+.k-dead { --k: var(--c-text-2); --kbg: var(--c-raised);  --kt: var(--c-text);   --kbar: var(--c-text-3); }
+.k-late { --k: var(--c-late);   --kbg: var(--c-late-bg); --kt: var(--c-late);   --kbar: var(--c-late); }
+.k-unk, .k-none { --k: var(--c-text-3); --kbg: transparent; --kt: var(--c-text-3); --kbar: transparent; }
+.k-up .mark   { background: currentColor; border-radius: 50%; }
+.k-soon .mark { border: 0.125rem solid currentColor; border-radius: 50%; }
+.k-dead .mark { border: 0.125rem solid currentColor; border-radius: 0.0625rem; }
+.k-late .mark { background: currentColor; transform: rotate(45deg) scale(0.85); }
+.k-unk .mark  { border: 0.125rem dashed currentColor; border-radius: 50%; }
+.k-none .mark { border: 0.125rem dotted currentColor; border-radius: 0.0625rem; }
+
+/* header */
+header {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--sp-3) var(--sp-5); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--c-line);
+}
+.titles { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+h1 { margin: 0; font-size: var(--fs-xl); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.01em; }
+.scope { font-size: var(--fs-sm); color: var(--c-text-2); }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.conn { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--sp-2); font-size: var(--fs-sm); color: var(--c-text-2); min-width: 0; }
+.conn .word { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; color: var(--k); }
+.conn.k-late .text { color: var(--c-late); }
+.btn {
+  min-height: var(--ctl-h); padding: 0 var(--sp-3); border: 1px solid var(--c-line-strong); border-radius: var(--r-1);
+  background: var(--c-surface); color: var(--c-text); font-size: var(--fs-sm); font-weight: 500; cursor: pointer;
+}
+.btn:hover { background: var(--c-raised); }
+.switch {
+  display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ctl-h); padding: 0 var(--sp-3);
+  border: 1px solid var(--c-line-strong); border-radius: var(--r-1); background: transparent; font-size: var(--fs-sm); cursor: pointer;
+}
+.switch:disabled { cursor: not-allowed; color: var(--c-text-3); }
+.track { display: flex; width: 2.25rem; height: 1.25rem; padding: 0.125rem; border-radius: 999px; border: 1px solid var(--c-line-strong); background: var(--c-raised); }
+.knob { width: 0.875rem; height: 0.875rem; border-radius: 50%; background: var(--c-text-3); transition: margin-left 0.15s; }
+.switch[aria-checked="true"] .track { border-color: var(--c-text); background: var(--c-text); }
+.switch[aria-checked="true"] .knob { background: var(--c-bg); margin-left: 1rem; }
+
+.finding { margin: 0; font-size: var(--fs-lg); line-height: 1.3; color: var(--c-text-2); text-wrap: pretty; min-height: 1.3em; }
+.finding b { color: var(--c-text); font-weight: 600; }
+.finding .up { color: var(--c-up); }
+
+/* layout: the left column (my bosses + upcoming) beside the list on wide screens, above it on narrow ones */
+main { flex: 1; display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: flex-start; align-content: flex-start; min-width: 0; }
+.left { flex: 1 1 var(--side); min-width: 0; display: flex; flex-wrap: wrap; gap: var(--sp-5); align-content: flex-start; }
+h2 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; }
+.note { font-size: var(--fs-xs); color: var(--c-text-3); }
+
+/* my bosses */
+.favs { flex: 1 1 30rem; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.cards { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.card {
+  flex: 1 1 22rem; min-width: 0; position: relative; display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-4) calc(var(--sp-4) + 0.1875rem);
+  background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-2); overflow: hidden;
+}
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+.card-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--sp-2); min-width: 0; }
+.card-name button { padding: 0; border: 0; background: none; font-size: var(--fs-md); line-height: 1; cursor: pointer; }
+h3 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; }
+.lvl { font-size: var(--fs-xs); color: var(--c-text-3); }
+.badge {
+  flex: none; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.125rem 0.5rem; border-radius: var(--r-1);
+  background: var(--kbg); color: var(--k); font-size: var(--fs-sm); font-weight: 500; line-height: 1.3; white-space: nowrap;
+}
+.timer-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); }
+.timer { font-family: var(--font-num); font-size: var(--fs-timer); font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--kt); }
+.cap { font-size: var(--fs-sm); color: var(--c-text-2); }
+.pairs { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2) var(--sp-4); }
+.pairs div { min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+.pairs dt { font-size: var(--fs-xs); color: var(--c-text-3); }
+.pairs dd { margin: 0; font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.cycle { position: absolute; left: 0; right: 0; bottom: 0; height: 0.1875rem; background: var(--c-line); }
+.cycle i { display: block; height: 100%; background: var(--kbar); }
+.empty-box { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); padding: var(--sp-4); border: 1px dashed var(--c-line-strong); border-radius: var(--r-2); }
+.empty-box .t { font-size: var(--fs-md); font-weight: 600; }
+.empty-box .s { font-size: var(--fs-sm); color: var(--c-text-2); text-wrap: pretty; }
+
+/* upcoming */
+.upcoming { flex: 1 1 24rem; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
+.group { padding: var(--sp-2) var(--sp-2) var(--sp-1); font-family: var(--font-num); font-size: var(--fs-xs); color: var(--c-text-3); border-bottom: 1px solid var(--c-line); }
+.up-row {
+  display: grid; grid-template-columns: 3.25rem minmax(0, 1fr) auto; align-items: baseline; gap: var(--sp-3);
+  padding: 0.25rem var(--sp-2); border-bottom: 1px solid var(--c-line);
+}
+.up-row.fav { background: var(--c-surface); }
+.up-row .time { font-family: var(--font-num); font-size: var(--fs-base); font-weight: 500; color: var(--kt); }
+.up-row .who { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; column-gap: var(--sp-2); }
+.up-row .who span:first-child { font-size: var(--fs-sm); }
+.up-row.fav .who span:first-child { font-weight: 600; }
+.up-row .in { font-size: var(--fs-sm); color: var(--c-text-2); white-space: nowrap; }
+.sk-row { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--sp-3); padding: 0.625rem var(--sp-2); border-bottom: 1px solid var(--c-line); }
+
+/* all bosses */
+.list { flex: 999 1 0; min-width: min(100%, 64%); display: flex; flex-direction: column; gap: var(--sp-3); }
+.list-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-4); }
+.list-title { display: flex; align-items: baseline; gap: var(--sp-2); }
+.filters { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.filter {
+  display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--ctl-h); padding: 0 0.375rem 0 var(--sp-3);
+  border: 1px solid var(--c-line-strong); border-radius: var(--r-1); background: transparent; color: var(--c-text);
+  font-size: var(--fs-sm); font-weight: 500; cursor: pointer;
+}
+.filter .count {
+  min-width: 1.75rem; padding: 0.125rem 0.375rem; border-radius: 0.1875rem; background: var(--c-raised); color: var(--c-text);
+  font-family: var(--font-num); font-size: var(--fs-xs); font-weight: 600; line-height: 1.4; text-align: center;
+}
+.filter[aria-pressed="true"] { background: var(--c-text); color: var(--c-bg); border-color: var(--c-text); }
+.filter[aria-pressed="true"] .count { background: var(--c-bg); color: var(--c-text); }
+.search {
+  flex: 1 1 16rem; max-width: 28rem; margin-left: auto; display: flex; align-items: center; gap: var(--sp-2);
+  min-height: var(--ctl-h); padding: 0 var(--sp-3); border: 1px solid var(--c-line-strong); border-radius: var(--r-1); background: var(--c-surface);
+}
+.search span { font-size: var(--fs-xs); color: var(--c-text-3); }
+.search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--c-text); font: inherit; font-size: var(--fs-sm); }
+.search input::placeholder { color: var(--c-text-3); }
+.search:focus-within { border-color: var(--c-text-2); }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--col-min)), 1fr)); gap: var(--sp-4) var(--sp-5); align-items: start; }
+.col { min-width: 0; display: flex; flex-direction: column; }
+.col-head {
+  display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); padding: 0 var(--sp-2) var(--sp-1);
+  border-bottom: 1px solid var(--c-line-strong); font-size: var(--fs-xs); color: var(--c-text-3);
+}
+.col-head .first { flex: 1 1 14rem; padding-left: 2rem; }
+.fields { display: grid; grid-template-columns: var(--col-resp) var(--col-state) var(--col-timer); column-gap: var(--sp-3); align-items: start; }
+.col-head .fields span:last-child { text-align: right; }
+@media (max-width: 43.75em) { .col-head { display: none; } }
+
+.row {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3);
+  padding: var(--sp-2) var(--sp-2); border-bottom: 1px solid var(--c-line);
+}
+.row.fav { background: var(--c-surface); }
+.row.stale { opacity: var(--stale-opacity); }
+.row .boss { flex: 1 1 14rem; min-width: 0; display: flex; align-items: flex-start; gap: var(--sp-2); }
+.star {
+  flex: none; width: 1.5rem; height: 1.5rem; margin: -0.125rem 0 0 -0.125rem; padding: 0; border: 0; background: none;
+  color: var(--c-text-3); font-size: var(--fs-md); line-height: 1; cursor: pointer;
+}
+.star:hover, .star[aria-pressed="true"] { color: var(--c-text); }
+.row .name-line { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--sp-2); }
+.row .name { font-size: var(--fs-base); font-weight: 500; line-height: 1.3; }
+.row .tp { font-size: var(--fs-xs); line-height: 1.3; color: var(--c-text-2); }
+.row .tp b { font-family: var(--font-num); font-weight: 400; color: var(--c-text); }
+.stack { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+.stack .a { font-size: var(--fs-sm); line-height: 1.3; }
+.stack .b { font-size: var(--fs-xs); line-height: 1.3; color: var(--c-text-2); white-space: nowrap; }
+.stack .b.q { color: var(--c-text-3); }
+.state-word { display: inline-flex; align-items: center; gap: 0.375rem; color: var(--k); font-size: var(--fs-sm); font-weight: 500; line-height: 1.3; white-space: nowrap; }
+.stack.end { align-items: flex-end; }
+.row .t { font-family: var(--font-num); font-size: var(--fs-md); font-weight: 500; line-height: var(--lh-tight); color: var(--kt); }
+.row .when { font-family: var(--font-num); }
+.row .bar { position: absolute; left: 0; bottom: -1px; height: 0.125rem; background: var(--kbar); }
+
+footer {
+  display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--c-line);
+  font-size: var(--fs-xs); color: var(--c-text-3); text-wrap: pretty;
+}
+@media (prefers-reduced-motion: reduce) { .knob { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="titles">
+      <h1>Боси Altgard</h1>
+      <div class="scope">Hadala · Європа · асмодіани</div>
+    </div>
+    <div class="controls">
+      <div class="conn k-unk" id="conn" role="status"><span class="word"><span class="mark"></span><span id="conn-word">Підключення</span></span><span class="text" id="conn-text">завантажую дані…</span></div>
+      <button class="btn" id="refresh" type="button">Оновити</button>
+      <button class="switch" id="notify" type="button" role="switch" aria-checked="false"><span class="track"><span class="knob"></span></span><span id="notify-label">Сповіщення за 5 хв</span></button>
+    </div>
+  </header>
+  <p class="finding" id="finding"><span class="sk" style="width:min(100%,34rem);height:0.9em"></span></p>
+
+  <main>
+    <div class="left">
+      <section class="favs" aria-labelledby="favs-h">
+        <h2 id="favs-h">Мої боси</h2>
+        <div id="cards"></div>
+      </section>
+      <section class="upcoming" aria-labelledby="up-h">
+        <div class="sec-head"><h2 id="up-h">Найближчі появи</h2><span class="note" id="up-note"></span></div>
+        <div id="upcoming"></div>
+      </section>
+    </div>
+
+    <section class="list" aria-labelledby="list-h">
+      <div class="list-bar">
+        <div class="list-title"><h2 id="list-h">Усі боси</h2><span class="note num" id="shown"></span></div>
+        <div class="filters" role="group" aria-label="Фільтр" id="filters"></div>
+        <label class="search"><span>Пошук</span><input id="q" type="search" placeholder="ім’я, телепорт або номер ТП" autocomplete="off"></label>
+      </div>
+      <div id="rows"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Дані: звіти гравців з A2Tools DPS Meter, оновлюються кожні 30 секунд. «Підтв.» означає, що двоє гравців побачили одне й те саме. Час за годинником цього пристрою.</span>
+    <span>Приглушений рядок — звіт старший за 3 год.</span>
+  </footer>
+</div>
+
+<script>
+const SERVER = 2310; // Hadala
+const FEED = `https://cdn.a2tools.app/feeds/boss-timers/${SERVER}.json`;
+const REFRESH_MS = 30_000;
+const LEAD_MIN = 5;
+const STALE_S = 3 * 3600;
+// [id, name, level, respawn minutes, teleport no., teleport name] (Event Timers 0.6.30 data)
+const BOSSES = [["111001","Melted Danar",45,30,5,"Creion Campsite"],["111002","Black Warrior Aed",45,30,8,"Neglected Crematorium"],["111003","Faithful Rajit",45,30,13,"Temporary Retreat"],["111004","Berserker Vargor",45,60,13,"Temporary Retreat"],["111005","Predator Garsan",45,120,21,"Forest Hideout"],["111006","Blood Warrior Lannar",45,90,20,"Elim's Rest"],["111007","Deceiver Trid",45,120,27,"Victorious Daeva's Statue"],["111008","Blue Wave Kelpina",45,120,32,"Healing Spring"],["111009","High Overseer Nutah",45,120,35,"Briskwind Shelter"],["111010","Advisor Resana",45,180,36,"Hidden Cave"],["111011","Special Operations Leader Linx",45,180,40,"Graverobber Campsite"],["111012","Desecrator Newbold",45,240,41,"Fissure Cave"],["111013","Specter Archon Axios",45,240,44,"Basfelt Ruins Cliff"],["111014","Addicted Hardirun",45,180,48,"Steel Hammer Workcamp"],["111015","Executioner Barthien",45,240,54,"Idun's Lake"],["111016","Drakan Battalion Weapon Guruta",45,360,51,"Steel Hammer Temporary Trading Post"],["111017","Veteran Shujakan",45,180,56,"Secret Rendezvous Point"],["111018","Visionary Karuka",45,240,57,"Kumrica's Cellar"],["111019","Dark Shadow Vishwada",45,360,57,"Kumrica's Cellar"],["111020","Sharp Shylak",45,360,58,"Collapsed Hall of Fame"],["111021","Immortal Gartua",51,720,15,"Remote Island"],["111022","High Commander Lagta",48,720,57,"Kumrica's Cellar"],["111023","Soul Ruler Kashapa",48,360,54,"Idun's Lake"],["111024","Silent Dartan",48,360,40,"Graverobber Campsite"]]
+  .map(([id, name, level, respawn, tp, tpName]) => ({ id, name, level, respawn, tp, tpName }));
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+let favs = new Set(store.get("favs", ["111021", "111023"]));
+let filter = store.get("filter", "all");
+if (!["all", "up", "soon", "mine"].includes(filter)) filter = "all";
+let feed = store.get("feed", null);
+let lastOk = store.get("lastOk", 0);
+let lastErr = "", lastErrAt = 0;
+let notifyOn = store.get("notify", false);
+const notified = new Set(store.get("notified", []));
+
+const $ = (id) => document.getElementById(id);
+const setHTML = (el, html) => { if (el.__html !== html) { el.innerHTML = html; el.__html = html; } };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+const hm = (unix) => new Date(unix * 1000).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+const hms = (ms) => new Date(ms).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const dur = (s) => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60; return h ? `${h}:${pad(m)}:${pad(x)}` : `${pad(m)}:${pad(x)}`; };
+const words = (s, floor) => { const m = floor ? Math.floor(s / 60) : Math.ceil(s / 60); if (m < 60) return `${m} хв`; const h = Math.floor(m / 60), r = m % 60; return `${h} год${r ? ` ${r} хв` : ""}`; };
+const ago = (s) => { const m = Math.max(0, Math.floor(s / 60)); return m < 60 ? `${m} хв` : `${Math.floor(m / 60)} год ${m % 60} хв`; };
+const resp = (m) => m < 60 ? `${m} хв` : `${String(m / 60).replace(".", ",")} год`;
+const LABEL = { up: "живий", soon: "скоро", dead: "мертвий", late: "мав з'явитися", unk: "час невідомий", none: "немає даних" };
+
+// One boss now: k = up | soon | dead | late | unk | none
+function compute(now) {
+  return BOSSES.map((b) => {
+    const e = feed?.bosses?.[b.id];
+    const o = { ...b, fav: favs.has(b.id), e, at: null, rem: 0, el: 0, pct: 0 };
+    o.rep = e?.reportedAt ? now - e.reportedAt : null;
+    o.stale = o.rep != null && o.rep > STALE_S;
+    if (!e) { Object.assign(o, { k: "none", timer: "—", when: "немає даних", cap: "звітів ще немає", pairK: "З'явиться о", pairV: "—" }); return o; }
+    if (e.state === "up") {
+      o.k = "up"; o.el = e.upSince ? now - e.upSince : 0; o.pct = 1;
+      Object.assign(o, { timer: e.upSince ? dur(o.el) : "—", when: e.upSince ? `з ${hm(e.upSince)}` : "живий", cap: "живий уже", pairK: "Живий з", pairV: e.upSince ? hm(e.upSince) : "—" });
+      return o;
+    }
+    if (e.nextSpawn) {
+      o.at = e.nextSpawn; o.rem = e.nextSpawn - now;
+      o.pct = Math.max(0, Math.min(1, 1 - o.rem / (b.respawn * 60)));
+      if (o.rem < 0) { Object.assign(o, { k: "late", timer: `+${dur(-o.rem)}`, when: `мав о ${hm(o.at)}`, cap: "після очікуваної появи", pairK: "Мав з'явитися о", pairV: hm(o.at), pct: 1 }); }
+      else Object.assign(o, { k: o.rem <= 1800 ? "soon" : "dead", timer: dur(o.rem), when: `о ${hm(o.at)}`, cap: "до появи", pairK: "З'явиться о", pairV: hm(o.at) });
+      return o;
+    }
+    Object.assign(o, { k: "unk", timer: "—", when: "невідомо", cap: "час появи ще невідомий", pairK: "З'явиться о", pairV: "невідомо" });
+    return o;
+  });
+}
+const rank = (b) => b.k === "up" ? [0, b.el] : (b.k === "unk" || b.k === "none") ? [2, 0] : [1, b.rem];
+const byRank = (a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1]; };
+const repText = (b) => b.rep == null ? "звітів немає" : `${ago(b.rep)}${b.e?.confirmed ? " · підтв." : ""}`;
+
+function renderHeader(bs) {
+  const conn = $("conn");
+  const loading = !feed;
+  const failed = !!lastErr;
+  conn.className = "conn " + (loading && !failed ? "k-unk" : failed ? "k-late" : "k-up");
+  $("conn-word").textContent = loading && !failed ? "Підключення" : failed ? "Офлайн" : "Онлайн";
+  let text;
+  if (loading && !failed) text = "завантажую дані…";
+  else if (loading) text = `Не вдалося завантажити о ${hm(lastErrAt / 1000)}: ${lastErr}`;
+  else if (failed) text = `Не вдалося оновити о ${hm(lastErrAt / 1000)}, показую дані за ${hm(lastOk / 1000)}`;
+  else text = `Оновлено ${hms(lastOk)}` + (feed.updated ? ` · дані сервера ${ago(Date.now() / 1000 - feed.updated)} тому` : "");
+  $("conn-text").textContent = text;
+  $("refresh").textContent = failed ? "Повторити" : "Оновити";
+
+  const f = $("finding");
+  if (loading) { setHTML(f, '<span class="sk" style="width:min(100%,34rem);height:0.9em"></span>'); return; }
+  const mine = bs.filter((b) => b.fav);
+  const alive = mine.filter((b) => b.k === "up").sort((a, b) => b.el - a.el);
+  const next = mine.filter((b) => b.at != null && b.rem >= 0).sort((a, b) => a.rem - b.rem);
+  const parts = [];
+  if (alive.length) { const a = alive[0]; parts.push(`Зараз живий: <b>${esc(a.name)}</b> (ТП ${a.tp}), уже <b class="up">${words(a.el, true)}</b>. `); }
+  if (next.length) { const n = next[0]; parts.push(`Наступний із твоїх: <b>${esc(n.name)}</b> о <b>${hm(n.at)}</b>, через <b>${words(n.rem)}</b>. `); }
+  if (!mine.length) {
+    const n = bs.filter((b) => b.at != null && b.rem >= 0).sort((a, b) => a.rem - b.rem)[0];
+    if (n) parts.push(`Найближча поява: <b>${esc(n.name)}</b> о <b>${hm(n.at)}</b>, через <b>${words(n.rem)}</b>. `);
+  }
+  parts.push(`Живих в Altgard: <b class="up">${bs.filter((b) => b.k === "up").length}</b> з ${BOSSES.length}.`);
+  setHTML(f, parts.join(""));
+}
+
+function renderCards(bs) {
+  const box = $("cards");
+  const loading = !feed;
+  const mine = bs.filter((b) => b.fav).sort(byRank);
+  if (!mine.length) {
+    box.className = "";
+    setHTML(box, '<div class="empty-box"><div class="t">Ти ще не стежиш за жодним босом</div><div class="s">Натисни ☆ біля боса у списку «Усі боси», і тут з’явиться його великий таймер. Зазвичай стежать за 1–4 босами.</div></div>');
+    return;
+  }
+  box.className = "cards";
+  setHTML(box, mine.map((b) => {
+    const pairs = [
+      [b.pairK, loading ? null : b.pairV],
+      ["Телепорт", `ТП ${b.tp} · ${b.tpName}`],
+      ["Респавн", `кожні ${resp(b.respawn)}`],
+      ["Останній звіт", loading ? null : (b.rep == null ? "немає" : `${ago(b.rep)} тому${b.e?.confirmed ? " · підтв." : ""}`)],
+    ];
+    return `<article class="card k-${b.k}">
+      <div class="card-head">
+        <div class="card-name"><button type="button" data-fav="${b.id}" aria-label="Прибрати ${esc(b.name)} з моїх" title="Прибрати з моїх">★</button><h3>${esc(b.name)}</h3><span class="lvl">${b.level} рів.</span></div>
+        ${loading ? '<span class="sk" style="width:4.5rem;height:1.25rem"></span>' : `<span class="badge"><span class="mark"></span>${LABEL[b.k]}</span>`}
+      </div>
+      <div class="timer-row">${loading ? '<span class="sk" style="width:11rem;height:var(--fs-timer)"></span>' : `<span class="timer">${b.timer}</span><span class="cap">${b.cap}</span>`}</div>
+      <dl class="pairs">${pairs.map(([k, v]) => `<div><dt>${esc(k)}</dt>${v == null ? '<dd><span class="sk" style="width:6rem;height:1em"></span></dd>' : `<dd>${esc(v)}</dd>`}</div>`).join("")}</dl>
+      <div class="cycle"><i style="width:${loading ? 0 : Math.round(b.pct * 100)}%"></i></div>
+    </article>`;
+  }).join(""));
+}
+
+function renderUpcoming(bs) {
+  const box = $("upcoming");
+  if (!feed) {
+    $("up-note").textContent = "";
+    setHTML(box, [9, 7, 11, 8, 10, 6, 9, 8].map((w) => `<div class="sk-row"><span class="sk" style="height:0.9rem"></span><span class="sk" style="height:0.8rem;width:${w}rem"></span><span class="sk" style="height:0.8rem"></span></div>`).join(""));
+    return;
+  }
+  const n = favs.size ? 8 : 12;
+  const due = bs.filter((b) => b.at != null).sort((a, b) => a.rem - b.rem).slice(0, n);
+  $("up-note").textContent = due.length ? `наступні ${due.length}` : "";
+  if (!due.length) { setHTML(box, '<div class="empty-box"><div class="s">Немає відомих часів появи. Вони з’являться, щойно хтось побачить мертвого боса на мапі.</div></div>'); return; }
+  let html = "", lastH = null;
+  for (const b of due) {
+    const d = new Date(b.at * 1000), h = d.getHours();
+    if (h !== lastH) { html += `<div class="group">${pad(h)}:00 – ${pad((h + 1) % 24)}:00</div>`; lastH = h; }
+    html += `<div class="up-row k-${b.k}${b.fav ? " fav" : ""}"><span class="time">${hm(b.at)}</span><span class="who"><span>${b.fav ? "★ " : ""}${esc(b.name)}</span><span class="note">ТП ${b.tp}</span></span><span class="in">${b.rem < 0 ? "+" + words(-b.rem) : "через " + words(b.rem)}</span></div>`;
+  }
+  setHTML(box, html);
+}
+
+const FILTERS = [["all", "Усі"], ["up", "Живі"], ["soon", "До 30 хв"], ["mine", "Мої"]];
+function renderList(bs) {
+  const loading = !feed;
+  const counts = { all: BOSSES.length, up: bs.filter((b) => b.k === "up").length, soon: bs.filter((b) => b.k === "soon").length, mine: favs.size };
+  setHTML($("filters"), FILTERS.map(([id, label]) => `<button type="button" class="filter" data-filter="${id}" aria-pressed="${filter === id}"><span>${label}</span><span class="count">${loading && id !== "all" && id !== "mine" ? "–" : counts[id]}</span></button>`).join(""));
+
+  const raw = $("q").value.trim();
+  const qq = raw.toLowerCase().replace(/^тп\s*/, "");
+  let list = [...bs].sort(byRank).filter((b) => filter === "all" || (filter === "up" && b.k === "up") || (filter === "soon" && b.k === "soon") || (filter === "mine" && b.fav));
+  if (qq) list = list.filter((b) => b.name.toLowerCase().includes(qq) || b.tpName.toLowerCase().includes(qq) || String(b.tp) === qq);
+  $("shown").textContent = list.length === BOSSES.length ? String(BOSSES.length) : `${list.length} з ${BOSSES.length}`;
+
+  const box = $("rows");
+  if (!list.length) {
+    const e = raw ? { t: `Нічого не знайдено за «${raw}»`, s: "Шукай за ім'ям боса, назвою або номером телепорту.", btn: "Скинути пошук", act: "clear-q" }
+      : filter === "mine" ? { t: "Ти ще не стежиш за жодним босом", s: "Натисни ☆ біля боса, щоб додати його.", btn: "Показати всіх", act: "all" }
+      : { t: "Зараз таких босів немає", s: "Спробуй інший фільтр.", btn: "Показати всіх", act: "all" };
+    setHTML(box, `<div class="empty-box" style="padding:var(--sp-6) var(--sp-5)"><div class="t">${esc(e.t)}</div><div class="s">${esc(e.s)}</div><button type="button" class="btn" data-act="${e.act}" style="margin-top:var(--sp-2)">${e.btn}</button></div>`);
+    return;
+  }
+  const k = Math.ceil(list.length / 2);
+  const cols = [list.slice(0, k), list.slice(k)].filter((c) => c.length);
+  const head = '<div class="col-head"><div class="first">Бос · телепорт</div><div class="fields"><span>Цикл</span><span>Стан · звіт</span><span>Таймер · час</span></div></div>';
+  setHTML(box, `<div class="cols">${cols.map((rows) => `<div class="col">${head}${rows.map(rowHtml).join("")}</div>`).join("")}</div>`);
+}
+function rowHtml(b) {
+  const loading = !feed;
+  const star = b.fav ? "★" : "☆";
+  const label = b.fav ? `Прибрати ${b.name} з моїх` : `Додати ${b.name} до моїх`;
+  const bar = !loading && b.k !== "unk" && b.k !== "none" ? `<div class="bar" style="width:${Math.round(b.pct * 100)}%"></div>` : "";
+  const state = loading
+    ? '<span class="sk" style="height:0.875rem;width:4.5rem;margin:0.125rem 0"></span><span class="sk" style="height:0.75rem;width:6.5rem;margin:0.125rem 0"></span>'
+    : `<span class="state-word"><span class="mark"></span>${LABEL[b.k]}</span><span class="b">${esc(repText(b))}</span>`;
+  const timer = loading
+    ? '<span class="sk" style="height:1rem;width:5rem;margin:0.125rem 0"></span><span class="sk" style="height:0.75rem;width:3.5rem;margin:0.125rem 0"></span>'
+    : `<span class="t">${b.timer}</span><span class="b when">${esc(b.when)}</span>`;
+  return `<div class="row k-${b.k}${b.fav ? " fav" : ""}${b.stale ? " stale" : ""}">
+    <div class="boss"><button type="button" class="star" data-fav="${b.id}" aria-pressed="${b.fav}" aria-label="${esc(label)}" title="${b.fav ? "Прибрати з моїх" : "Додати до моїх"}">${star}</button>
+      <div class="stack"><div class="name-line"><span class="name">${esc(b.name)}</span><span class="lvl">${b.level} рів.</span></div><div class="tp"><b>ТП ${b.tp}</b> ${esc(b.tpName)}</div></div></div>
+    <div class="fields"><div class="stack"><span class="a">${resp(b.respawn)}</span><span class="b q">респавн</span></div><div class="stack">${state}</div><div class="stack end">${timer}</div></div>
+    ${bar}</div>`;
+}
+
+function checkNotify(bs) {
+  if (!notifyOn || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+  for (const b of bs) {
+    if (!b.fav || b.at == null || b.rem <= 0 || b.rem > LEAD_MIN * 60) continue;
+    const key = `${b.id}:${b.at}`;
+    if (notified.has(key)) continue;
+    notified.add(key); store.set("notified", [...notified].slice(-50));
+    try { new Notification(`${b.name} через ${Math.ceil(b.rem / 60)} хв`, { body: `Altgard, Hadala, о ${hm(b.at)}. ТП ${b.tp} ${b.tpName}.`, tag: key }); } catch {}
+  }
+}
+function renderNotify() {
+  const btn = $("notify"), ok = typeof Notification !== "undefined";
+  const on = ok && notifyOn && Notification.permission === "granted";
+  btn.setAttribute("aria-checked", String(on));
+  btn.disabled = !ok || Notification.permission === "denied";
+  $("notify-label").textContent = !ok ? "Сповіщення недоступні" : Notification.permission === "denied" ? "Сповіщення заблоковані" : "Сповіщення за 5 хв";
+  btn.title = ok && Notification.permission === "denied" ? "Дозволь сповіщення для цієї сторінки в налаштуваннях браузера" : "Сповіщення про твоїх босів за 5 хв до появи, поки сторінка відкрита";
+}
+
+function render() {
+  const now = Date.now() / 1000;
+  const bs = compute(now);
+  renderHeader(bs); renderCards(bs); renderUpcoming(bs); renderList(bs); checkNotify(bs);
+}
+
+async function load() {
+  try {
+    const res = await fetch(FEED, { cache: "no-cache" });
+    if (!res.ok) throw new Error(`сервер відповів ${res.status}`);
+    const data = await res.json();
+    if (!data || typeof data.bosses !== "object") throw new Error("незнайомий формат даних");
+    feed = data; lastOk = Date.now(); lastErr = "";
+    store.set("feed", feed); store.set("lastOk", lastOk);
+  } catch (err) {
+    lastErr = err?.message || "мережа недоступна"; lastErrAt = Date.now();
+  }
+  render();
+}
+
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-fav],[data-filter],[data-act]");
+  if (!t) return;
+  if (t.dataset.fav) { const id = t.dataset.fav; favs.has(id) ? favs.delete(id) : favs.add(id); store.set("favs", [...favs]); }
+  else if (t.dataset.filter) { filter = t.dataset.filter; store.set("filter", filter); }
+  else if (t.dataset.act === "clear-q") { $("q").value = ""; }
+  else if (t.dataset.act === "all") { filter = "all"; store.set("filter", filter); $("q").value = ""; }
+  render();
+});
+$("q").addEventListener("input", render);
+$("refresh").addEventListener("click", load);
+$("notify").addEventListener("click", async () => {
+  if (typeof Notification === "undefined") return;
+  if (notifyOn && Notification.permission === "granted") notifyOn = false;
+  else {
+    let p = Notification.permission;
+    if (p === "default") { try { p = await Notification.requestPermission(); } catch { p = "denied"; } }
+    notifyOn = p === "granted";
+  }
+  store.set("notify", notifyOn); renderNotify();
+});
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+
+renderNotify();
+render();
+load();
+setInterval(load, REFRESH_MS);
+setInterval(render, 1000);
+</script>
+</body>
+</html>
