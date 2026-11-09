@@ -321,7 +321,7 @@ const dur = (s) => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 36
 const words = (s, floor) => { const m = floor ? Math.floor(s / 60) : Math.ceil(s / 60); if (m < 60) return `${m} хв`; const h = Math.floor(m / 60), r = m % 60; return `${h} год${r ? ` ${r} хв` : ""}`; };
 const ago = (s) => { const m = Math.max(0, Math.floor(s / 60)); return m < 60 ? `${m} хв` : `${Math.floor(m / 60)} год ${m % 60} хв`; };
 const resp = (m) => m < 60 ? `${m} хв` : `${String(m / 60).replace(".", ",")} год`;
-const LABEL = { up: "живий", soon: "скоро", dead: "мертвий", late: "мав з'явитися", unk: "час невідомий", none: "немає даних" };
+const LABEL = { up: "живий", soon: "скоро", dead: "мертвий", late: "мабуть, живий", unk: "час невідомий", none: "немає даних" };
 
 // One boss now: k = up | soon | dead | late | unk | none
 function compute(now) {
@@ -339,7 +339,7 @@ function compute(now) {
     if (e.nextSpawn) {
       o.at = e.nextSpawn; o.rem = e.nextSpawn - now;
       o.pct = Math.max(0, Math.min(1, 1 - o.rem / (b.respawn * 60)));
-      if (o.rem < 0) { Object.assign(o, { k: "late", timer: `+${dur(-o.rem)}`, when: `мав о ${hm(o.at)}`, cap: "після очікуваної появи", pairK: "Мав з'явитися о", pairV: hm(o.at), pct: 1 }); }
+      if (o.rem < 0) { Object.assign(o, { k: "late", timer: `+${dur(-o.rem)}`, when: `~з ${hm(o.at)}, не підтв.`, cap: "з очікуваної появи, не підтверджено", pairK: "Мав з'явитися о", pairV: hm(o.at), pct: 1 }); }
       else Object.assign(o, { k: o.rem <= 1800 ? "soon" : "dead", timer: dur(o.rem), when: `о ${hm(o.at)}`, cap: "до появи", pairK: "З'явиться о", pairV: hm(o.at) });
       return o;
     }
@@ -377,7 +377,8 @@ function renderHeader(bs) {
     const n = bs.filter((b) => b.at != null && b.rem >= 0).sort((a, b) => a.rem - b.rem)[0];
     if (n) parts.push(`Найближча поява: <b>${esc(n.name)}</b> о <b>${hm(n.at)}</b>, через <b>${words(n.rem)}</b>. `);
   }
-  parts.push(`Живих в Altgard: <b class="up">${bs.filter((b) => b.k === "up").length}</b> з ${BOSSES.length}.`);
+  const nLate = bs.filter((b) => b.k === "late").length;
+  parts.push(`Живих в Altgard: <b class="up">${bs.filter((b) => b.k === "up").length}</b> з ${BOSSES.length}` + (nLate ? `, ще <b>${nLate}</b>, мабуть, уже з'явились (не підтверджено).` : "."));
   setHTML(f, parts.join(""));
 }
 
@@ -433,12 +434,12 @@ function renderUpcoming(bs) {
 const FILTERS = [["all", "Усі"], ["up", "Живі"], ["soon", "До 30 хв"], ["mine", "Мої"]];
 function renderList(bs) {
   const loading = !feed;
-  const counts = { all: BOSSES.length, up: bs.filter((b) => b.k === "up").length, soon: bs.filter((b) => b.k === "soon").length, mine: favs.size };
+  const counts = { all: BOSSES.length, up: bs.filter((b) => b.k === "up" || b.k === "late").length, soon: bs.filter((b) => b.k === "soon").length, mine: favs.size };
   setHTML($("filters"), FILTERS.map(([id, label]) => `<button type="button" class="filter" data-filter="${id}" aria-pressed="${filter === id}"><span>${label}</span><span class="count">${loading && id !== "all" && id !== "mine" ? "–" : counts[id]}</span></button>`).join(""));
 
   const raw = $("q").value.trim();
   const qq = raw.toLowerCase().replace(/^тп\s*/, "");
-  let list = [...bs].sort(byRank).filter((b) => filter === "all" || (filter === "up" && b.k === "up") || (filter === "soon" && b.k === "soon") || (filter === "mine" && b.fav));
+  let list = [...bs].sort(byRank).filter((b) => filter === "all" || (filter === "up" && (b.k === "up" || b.k === "late")) || (filter === "soon" && b.k === "soon") || (filter === "mine" && b.fav));
   if (qq) list = list.filter((b) => b.name.toLowerCase().includes(qq) || b.tpName.toLowerCase().includes(qq) || String(b.tp) === qq);
   $("shown").textContent = list.length === BOSSES.length ? String(BOSSES.length) : `${list.length} з ${BOSSES.length}`;
 
