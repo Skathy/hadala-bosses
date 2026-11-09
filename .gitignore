@@ -2,3 +2,5 @@ design/
 design-brief.md
 .taste-skill/
 *.png
+!favicon-32.png
+!apple-touch-icon.png

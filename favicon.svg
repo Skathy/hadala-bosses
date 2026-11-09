@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#15131b"/>
+  <!-- one dark-faction wing: shoulder at top left, five feathers fanning down to the right -->
+  <g fill="#c8364a">
+    <path d="M10 14c14-5 31-4 44 3-9 1-17 3-24 7C21 26 14 22 10 14z"/>
+    <path d="M12 21c11 2 25 3 38 9-9 1-16 3-22 7-8-2-13-8-16-16z"/>
+    <path d="M14 29c9 4 21 7 31 14-8 0-14 2-19 5-6-4-10-10-12-19z"/>
+    <path d="M17 37c8 5 16 10 22 17-7-1-12 0-16 2-4-5-6-11-6-19z"/>
+  </g>
+  <path d="M10 14c3 10 8 22 13 42" fill="none" stroke="#15131b" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
