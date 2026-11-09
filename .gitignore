@@ -4,3 +4,6 @@ design-brief.md
 *.png
 !favicon-32.png
 !apple-touch-icon.png
+feedback/
+design-feedback.md
+design-v2/

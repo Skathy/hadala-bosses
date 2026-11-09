@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Design: Claude Design "Altgard Bosses", screen 1a (upcoming A, list A); tokens from 5a as given. */
+/* Design: Claude Design "Altgard Bosses", Screen v2 (section 6); tokens = 5a + the 6k diff. */
 :root {
   color-scheme: dark;
   --font-ui: "IBM Plex Sans", system-ui, sans-serif;
@@ -30,9 +30,11 @@
 
   --c-up: oklch(0.8 0.14 150);
   --c-up-bg: oklch(0.8 0.14 150 / 0.12);
+  --c-likely: oklch(0.8 0.07 150);          /* мабуть, живий: тон живого, половина насиченості */
+  --c-likely-bg: oklch(0.8 0.07 150 / 0.1);
   --c-soon: oklch(0.8 0.14 80);
   --c-soon-bg: oklch(0.8 0.14 80 / 0.12);
-  --c-late: oklch(0.8 0.14 30);
+  --c-late: oklch(0.8 0.14 30);             /* лише помилка оновлення */
   --c-late-bg: oklch(0.8 0.14 30 / 0.12);
 
   --fs-xs: clamp(0.75rem, 0.734rem + 0.065vw, 0.8125rem);
@@ -42,6 +44,7 @@
   --fs-lg: clamp(1.0625rem, 0.983rem + 0.327vw, 1.375rem);
   --fs-xl: clamp(1.375rem, 1.279rem + 0.392vw, 1.75rem);
   --fs-timer: clamp(2.5rem, 2.309rem + 0.784vw, 3.25rem);
+  --fs-timer-m: clamp(1.625rem, 1.53rem + 0.392vw, 2rem);
   --lh-tight: 1.15;
   --lh-body: 1.35;
 
@@ -55,11 +58,12 @@
   --r-1: 0.25rem;
   --r-2: 0.5rem;
   --ctl-h: 2.5rem;
-  --side: 32rem;
+  --ctl-h-sm: 2rem;
+  --side: 30rem;
   --col-min: 34rem;
-  --col-resp: 4.5rem;
+  --col-resp: 4rem;
   --col-state: 8.5rem;
-  --col-timer: 6.5rem;
+  --col-timer: 6rem;
   --stale-opacity: 0.6;
 }
 * { box-sizing: border-box; }
@@ -74,6 +78,7 @@ button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--c-text-2); outline-offset: 2px; }
 .num { font-family: var(--font-num); }
 .sk { display: inline-block; border-radius: var(--r-1); background: var(--c-skeleton); }
+.ell { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .app {
   min-height: 100vh; min-height: 100dvh;
@@ -83,32 +88,44 @@ button { font: inherit; color: inherit; }
   padding-right: max(var(--sp-5), env(safe-area-inset-right, 0px));
 }
 
-/* state marks: the word, a colour and a shape, never colour alone */
+/* state marks: a word, a colour and a shape, never colour alone */
 .mark { width: 0.5rem; height: 0.5rem; flex: none; display: inline-block; }
-.k-up   { --k: var(--c-up);     --kbg: var(--c-up-bg);   --kt: var(--c-up);     --kbar: var(--c-up); }
-.k-soon { --k: var(--c-soon);   --kbg: var(--c-soon-bg); --kt: var(--c-soon);   --kbar: var(--c-soon); }
-.k-dead { --k: var(--c-text-2); --kbg: var(--c-raised);  --kt: var(--c-text);   --kbar: var(--c-text-3); }
-.k-late { --k: var(--c-late);   --kbg: var(--c-late-bg); --kt: var(--c-late);   --kbar: var(--c-late); }
+.k-up     { --k: var(--c-up);     --kbg: var(--c-up-bg);     --kt: var(--c-up);     --kbar: var(--c-up); }
+.k-likely { --k: var(--c-likely); --kbg: var(--c-likely-bg); --kt: var(--c-likely); --kbar: var(--c-likely); }
+.k-soon   { --k: var(--c-soon);   --kbg: var(--c-soon-bg);   --kt: var(--c-soon);   --kbar: var(--c-soon); }
+.k-dead   { --k: var(--c-text-2); --kbg: var(--c-raised);    --kt: var(--c-text);   --kbar: var(--c-text-3); }
+.k-err    { --k: var(--c-late);   --kbg: var(--c-late-bg);   --kt: var(--c-late);   --kbar: var(--c-late); }
+.k-stale  { --k: var(--c-text-2); }
 .k-unk, .k-none { --k: var(--c-text-3); --kbg: transparent; --kt: var(--c-text-3); --kbar: transparent; }
-.k-up .mark   { background: currentColor; border-radius: 50%; }
-.k-soon .mark { border: 0.125rem solid currentColor; border-radius: 50%; }
-.k-dead .mark { border: 0.125rem solid currentColor; border-radius: 0.0625rem; }
-.k-late .mark { background: currentColor; transform: rotate(45deg) scale(0.85); }
-.k-unk .mark  { border: 0.125rem dashed currentColor; border-radius: 50%; }
-.k-none .mark { border: 0.125rem dotted currentColor; border-radius: 0.0625rem; }
+.k-up .mark     { background: currentColor; border-radius: 50%; }
+.k-likely .mark { border: 0.0625rem solid currentColor; border-radius: 50%; box-shadow: inset 0.25rem 0 0 currentColor; }
+.k-soon .mark   { border: 0.125rem solid currentColor; border-radius: 50%; }
+.k-dead .mark   { border: 0.125rem solid currentColor; border-radius: 0.0625rem; }
+.k-err .mark    { background: currentColor; transform: rotate(45deg) scale(0.85); }
+.k-stale .mark  { border: 0.125rem solid currentColor; border-radius: 50%; }
+.k-unk .mark    { border: 0.125rem dashed currentColor; border-radius: 50%; }
+.k-none .mark   { border: 0.125rem dotted currentColor; border-radius: 0.0625rem; }
 
 /* header */
 header {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: var(--sp-3) var(--sp-5); padding-bottom: var(--sp-4); border-bottom: 1px solid var(--c-line);
 }
+.brand { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.brand img { width: 2.5rem; height: 2.5rem; flex: none; border-radius: 0.375rem; }
 .titles { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
 h1 { margin: 0; font-size: var(--fs-xl); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.01em; }
 .scope { font-size: var(--fs-sm); color: var(--c-text-2); }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
-.conn { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--sp-2); font-size: var(--fs-sm); color: var(--c-text-2); min-width: 0; }
+.conn {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--sp-2); min-height: var(--ctl-h);
+  font-size: var(--fs-sm); color: var(--c-text-2); min-width: 0; border: 1px solid transparent; border-radius: var(--r-1);
+}
 .conn .word { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; color: var(--k); }
-.conn.k-late .text { color: var(--c-late); }
+.conn .word .mark { color: var(--k); }
+.conn.k-err .text { color: var(--c-late); }
+.conn.k-stale { padding: 0 var(--sp-3); border-color: var(--c-line-strong); background: var(--c-raised); }
+.conn.k-stale .word { color: var(--c-text); }
 .btn {
   min-height: var(--ctl-h); padding: 0 var(--sp-3); border: 1px solid var(--c-line-strong); border-radius: var(--r-1);
   background: var(--c-surface); color: var(--c-text); font-size: var(--fs-sm); font-weight: 500; cursor: pointer;
@@ -127,17 +144,28 @@ h1 { margin: 0; font-size: var(--fs-xl); font-weight: 600; line-height: var(--lh
 .finding { margin: 0; font-size: var(--fs-lg); line-height: 1.3; color: var(--c-text-2); text-wrap: pretty; min-height: 1.3em; }
 .finding b { color: var(--c-text); font-weight: 600; }
 .finding .up { color: var(--c-up); }
+.finding .likely { color: var(--c-likely); }
+.finding .warn { color: var(--c-text); font-weight: 500; }
 
-/* layout: the left column (my bosses + upcoming) beside the list on wide screens, above it on narrow ones */
+/* layout */
 main { flex: 1; display: flex; flex-wrap: wrap; gap: var(--sp-5); align-items: flex-start; align-content: flex-start; min-width: 0; }
 .left { flex: 1 1 var(--side); min-width: 0; display: flex; flex-wrap: wrap; gap: var(--sp-5); align-content: flex-start; }
 h2 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; }
 .note { font-size: var(--fs-xs); color: var(--c-text-3); }
-.text-btn { padding: 0; border: 0; background: none; font-size: var(--fs-xs); color: var(--c-text-2); cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; text-decoration-color: var(--c-line-strong); }
-.text-btn:hover { color: var(--c-text); }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
 
 /* my bosses */
-.favs { flex: 1 1 30rem; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.favs { flex: 1 1 28rem; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.favs-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; }
+.favs-head .t { display: flex; align-items: baseline; gap: var(--sp-2); }
+.copy {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; min-width: 11.5rem; min-height: var(--ctl-h-sm);
+  padding: 0 var(--sp-2); border: 1px solid var(--c-line); border-radius: var(--r-1); background: transparent; color: var(--c-text-2);
+  font-size: var(--fs-xs); font-weight: 500; cursor: pointer;
+}
+.copy:hover { border-color: var(--c-line-strong); color: var(--c-text); }
+.copy.done { border-color: var(--c-line-strong); background: var(--c-raised); color: var(--c-text); }
+
 .cards { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .card {
   flex: 1 1 22rem; min-width: 0; position: relative; display: flex; flex-direction: column; gap: var(--sp-2);
@@ -146,9 +174,9 @@ h2 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; }
 }
 .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
 .card-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--sp-2); min-width: 0; }
-.card-name button { padding: 0; border: 0; background: none; font-size: var(--fs-md); line-height: 1; cursor: pointer; }
+.unfav { flex: none; padding: 0; border: 0; background: none; color: var(--c-text); font-size: var(--fs-md); line-height: 1; cursor: pointer; }
 h3 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; }
-.lvl { font-size: var(--fs-xs); color: var(--c-text-3); }
+.lvl { flex: none; font-size: var(--fs-xs); color: var(--c-text-3); }
 .badge {
   flex: none; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.125rem 0.5rem; border-radius: var(--r-1);
   background: var(--kbg); color: var(--k); font-size: var(--fs-sm); font-weight: 500; line-height: 1.3; white-space: nowrap;
@@ -162,35 +190,58 @@ h3 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; }
 .pairs dd { margin: 0; font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .cycle { position: absolute; left: 0; right: 0; bottom: 0; height: 0.1875rem; background: var(--c-line); }
 .cycle i { display: block; height: 100%; background: var(--kbar); }
-/* 3+ bosses: compact cards in a grid, so a long list grows sideways, not down */
-.cards.compact { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); gap: var(--sp-2); }
-.compact .card { padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + 0.1875rem); gap: var(--sp-1); }
-.compact .card-head { flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); }
-.compact h3 { font-size: var(--fs-base); }
-.compact .card-name button { font-size: var(--fs-base); }
-.compact .badge { font-size: var(--fs-xs); padding: 0 0.375rem; }
-.compact .timer { font-size: var(--fs-xl); }
-.compact .timer-row { align-items: center; gap: var(--sp-1) var(--sp-2); }
-.compact .meta { font-size: var(--fs-xs); color: var(--c-text-2); overflow-wrap: anywhere; }
+
+/* 3–4 bosses: medium cards, 2 × 2 */
+.cards.mid { gap: var(--sp-2); }
+.mid .card { flex: 1 1 13rem; gap: var(--sp-1); padding: var(--sp-3) var(--sp-3) calc(var(--sp-3) + 0.1875rem); }
+.mid .card-top { display: flex; align-items: baseline; gap: var(--sp-2); min-width: 0; }
+.mid .card-top .unfav { font-size: var(--fs-base); }
+.mid .card-top .name { flex: 1; font-size: var(--fs-base); font-weight: 600; }
+.mid .timer { font-size: var(--fs-timer-m); line-height: 1.1; }
+.mid .timer-row { gap: 0 var(--sp-2); }
+.mid .when { font-family: var(--font-num); font-size: var(--fs-xs); color: var(--c-text-2); }
+.stline { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; font-size: var(--fs-xs); }
+.stline .st { flex: none; display: inline-flex; align-items: center; gap: 0.375rem; color: var(--k); font-weight: 500; }
+.stline .tpx { color: var(--c-text-3); }
+
+/* 5+ bosses: a compact two-line list */
+.clist { display: flex; flex-direction: column; border: 1px solid var(--c-line); border-radius: var(--r-2); background: var(--c-surface); overflow: hidden; }
+.citem {
+  position: relative; display: grid; grid-template-columns: 1.25rem minmax(0, 1fr) auto; align-items: center;
+  column-gap: var(--sp-2); row-gap: 0.0625rem; padding: 0.3125rem var(--sp-3) 0.375rem var(--sp-2); border-bottom: 1px solid var(--c-line);
+}
+.citem:last-child { border-bottom: 0; }
+.citem .unfav { grid-row: 1 / span 2; align-self: start; font-size: var(--fs-base); line-height: 1.4; }
+.citem .name { font-size: var(--fs-sm); font-weight: 600; }
+.citem .t { font-family: var(--font-num); font-size: var(--fs-md); font-weight: 500; line-height: 1.15; text-align: right; color: var(--kt); }
+.citem .stline { gap: var(--sp-2); line-height: 1.3; }
+.citem .stline .st { gap: 0.3125rem; }
+.citem .when { font-family: var(--font-num); font-size: var(--fs-xs); line-height: 1.3; text-align: right; color: var(--c-text-2); white-space: nowrap; }
+.citem .bar { position: absolute; left: 0; bottom: -1px; height: 0.125rem; background: var(--kbar); }
+
 .empty-box { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); padding: var(--sp-4); border: 1px dashed var(--c-line-strong); border-radius: var(--r-2); }
 .empty-box .t { font-size: var(--fs-md); font-weight: 600; }
 .empty-box .s { font-size: var(--fs-sm); color: var(--c-text-2); text-wrap: pretty; }
 
 /* upcoming */
 .upcoming { flex: 1 1 24rem; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
-.group { padding: var(--sp-2) var(--sp-2) var(--sp-1); font-family: var(--font-num); font-size: var(--fs-xs); color: var(--c-text-3); border-bottom: 1px solid var(--c-line); }
+.group {
+  display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-2) var(--sp-1);
+  font-family: var(--font-num); font-size: var(--fs-xs); color: var(--c-text-3); border-bottom: 1px solid var(--c-line);
+}
+.group.likely { font-family: var(--font-ui); font-weight: 500; color: var(--c-likely); }
 .up-row {
-  display: grid; grid-template-columns: 3.25rem minmax(0, 1fr) auto; align-items: baseline; gap: var(--sp-3);
+  display: grid; grid-template-columns: 3.75rem minmax(0, 1fr) auto; align-items: baseline; gap: var(--sp-3);
   padding: 0.25rem var(--sp-2); border-bottom: 1px solid var(--c-line);
 }
 .up-row.fav { background: var(--c-surface); }
 .up-row .time { font-family: var(--font-num); font-size: var(--fs-base); font-weight: 500; color: var(--kt); }
-.up-row .who { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; column-gap: var(--sp-2); }
-.up-row .who span:first-child { font-size: var(--fs-sm); }
-.up-row.fav .who span:first-child { font-weight: 600; }
+.up-row .who { min-width: 0; display: flex; align-items: baseline; gap: var(--sp-2); }
+.up-row .who .name { font-size: var(--fs-sm); }
+.up-row.fav .who .name { font-weight: 600; }
+.up-row .who .note { flex: none; }
 .up-row .in { font-size: var(--fs-sm); color: var(--c-text-2); white-space: nowrap; }
-.sk-row { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--sp-3); padding: 0.625rem var(--sp-2); border-bottom: 1px solid var(--c-line); }
+.sk-row { display: grid; grid-template-columns: 3.75rem minmax(0, 1fr) 4.5rem; align-items: center; gap: var(--sp-3); padding: 0.625rem var(--sp-2); border-bottom: 1px solid var(--c-line); }
 
 /* all bosses */
 .list { flex: 999 1 0; min-width: min(100%, 64%); display: flex; flex-direction: column; gap: var(--sp-3); }
@@ -220,31 +271,31 @@ h3 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--col-min)), 1fr)); gap: var(--sp-4) var(--sp-5); align-items: start; }
 .col { min-width: 0; display: flex; flex-direction: column; }
 .col-head {
-  display: flex; flex-wrap: wrap; gap: 0 var(--sp-3); padding: 0 var(--sp-2) var(--sp-1);
+  display: flex; gap: 0 var(--sp-3); padding: 0 var(--sp-2) var(--sp-1);
   border-bottom: 1px solid var(--c-line-strong); font-size: var(--fs-xs); color: var(--c-text-3);
 }
-.col-head .first { flex: 1 1 14rem; padding-left: 2rem; }
-.fields { display: grid; grid-template-columns: var(--col-resp) var(--col-state) var(--col-timer); column-gap: var(--sp-3); align-items: start; }
+.col-head .first { flex: 1 1 0; min-width: 0; padding-left: 2rem; }
+.fields { flex: none; display: grid; grid-template-columns: var(--col-resp) var(--col-state) var(--col-timer); column-gap: var(--sp-3); align-items: start; }
 .col-head .fields span:last-child { text-align: right; }
-@media (max-width: 43.75em) { .col-head { display: none; } }
 
 .row {
-  position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3);
+  position: relative; display: flex; flex-wrap: nowrap; align-items: center; gap: var(--sp-1) var(--sp-3);
   padding: var(--sp-2) var(--sp-2); border-bottom: 1px solid var(--c-line);
 }
 .row.fav { background: var(--c-surface); }
 .row.stale { opacity: var(--stale-opacity); }
-.row .boss { flex: 1 1 14rem; min-width: 0; display: flex; align-items: flex-start; gap: var(--sp-2); }
+.row .boss { flex: 1 1 12rem; min-width: 0; display: flex; align-items: flex-start; gap: var(--sp-2); }
 .star {
   flex: none; width: 1.5rem; height: 1.5rem; margin: -0.125rem 0 0 -0.125rem; padding: 0; border: 0; background: none;
   color: var(--c-text-3); font-size: var(--fs-md); line-height: 1; cursor: pointer;
 }
 .star:hover, .star[aria-pressed="true"] { color: var(--c-text); }
-.row .name-line { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--sp-2); }
+.stack { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+.row .boss .stack { flex: 1; }
+.row .name-line { display: flex; align-items: baseline; column-gap: var(--sp-2); min-width: 0; }
 .row .name { font-size: var(--fs-base); font-weight: 500; line-height: 1.3; }
 .row .tp { font-size: var(--fs-xs); line-height: 1.3; color: var(--c-text-2); }
 .row .tp b { font-family: var(--font-num); font-weight: 400; color: var(--c-text); }
-.stack { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
 .stack .a { font-size: var(--fs-sm); line-height: 1.3; }
 .stack .b { font-size: var(--fs-xs); line-height: 1.3; color: var(--c-text-2); white-space: nowrap; }
 .stack .b.q { color: var(--c-text-3); }
@@ -253,6 +304,10 @@ h3 { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.25; }
 .row .t { font-family: var(--font-num); font-size: var(--fs-md); font-weight: 500; line-height: var(--lh-tight); color: var(--kt); }
 .row .when { font-family: var(--font-num); }
 .row .bar { position: absolute; left: 0; bottom: -1px; height: 0.125rem; background: var(--kbar); }
+@media (max-width: 43.75em) {
+  .col-head { display: none; }
+  .row { flex-wrap: wrap; }
+}
 
 footer {
   display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--c-line);
@@ -264,9 +319,12 @@ footer {
 <body>
 <div class="app">
   <header>
-    <div class="titles">
-      <h1>Боси Altgard</h1>
-      <div class="scope">Hadala · Європа · асмодіани</div>
+    <div class="brand">
+      <img src="favicon.svg" alt="">
+      <div class="titles">
+        <h1>Боси Altgard</h1>
+        <div class="scope">Hadala · Європа · асмодіани</div>
+      </div>
     </div>
     <div class="controls">
       <div class="conn k-unk" id="conn" role="status"><span class="word"><span class="mark"></span><span id="conn-word">Підключення</span></span><span class="text" id="conn-text">завантажую дані…</span></div>
@@ -279,7 +337,10 @@ footer {
   <main>
     <div class="left">
       <section class="favs" aria-labelledby="favs-h">
-        <div class="sec-head"><h2 id="favs-h">Мої боси</h2><button type="button" class="text-btn" id="copy-link" title="Посилання з твоїм списком: відкрий його на іншому пристрої або збережи в закладки">Скопіювати посилання на список</button></div>
+        <div class="favs-head">
+          <div class="t"><h2 id="favs-h">Мої боси</h2><span class="note num" id="fav-count"></span></div>
+          <button type="button" class="copy" id="copy-link" title="Посилання відкриє цей самий список на телефоні чи іншому ПК">Скопіювати посилання</button>
+        </div>
         <div id="cards"></div>
       </section>
       <section class="upcoming" aria-labelledby="up-h">
@@ -309,7 +370,8 @@ const SERVER = 2310; // Hadala
 const FEED = `https://cdn.a2tools.app/feeds/boss-timers/${SERVER}.json`;
 const REFRESH_MS = 30_000;
 const LEAD_MIN = 5;
-const STALE_S = 3 * 3600;
+const STALE_S = 3 * 3600;         // a boss's report older than this dims its row
+const STALE_AFTER_MIN = 15;       // the feed itself not updated for longer than this
 // [id, name, level, respawn minutes, teleport no., teleport name] (Event Timers 0.6.30 data)
 const BOSSES = [["111001","Melted Danar",45,30,5,"Creion Campsite"],["111002","Black Warrior Aed",45,30,8,"Neglected Crematorium"],["111003","Faithful Rajit",45,30,13,"Temporary Retreat"],["111004","Berserker Vargor",45,60,13,"Temporary Retreat"],["111005","Predator Garsan",45,120,21,"Forest Hideout"],["111006","Blood Warrior Lannar",45,90,20,"Elim's Rest"],["111007","Deceiver Trid",45,120,27,"Victorious Daeva's Statue"],["111008","Blue Wave Kelpina",45,120,32,"Healing Spring"],["111009","High Overseer Nutah",45,120,35,"Briskwind Shelter"],["111010","Advisor Resana",45,180,36,"Hidden Cave"],["111011","Special Operations Leader Linx",45,180,40,"Graverobber Campsite"],["111012","Desecrator Newbold",45,240,41,"Fissure Cave"],["111013","Specter Archon Axios",45,240,44,"Basfelt Ruins Cliff"],["111014","Addicted Hardirun",45,180,48,"Steel Hammer Workcamp"],["111015","Executioner Barthien",45,240,54,"Idun's Lake"],["111016","Drakan Battalion Weapon Guruta",45,360,51,"Steel Hammer Temporary Trading Post"],["111017","Veteran Shujakan",45,180,56,"Secret Rendezvous Point"],["111018","Visionary Karuka",45,240,57,"Kumrica's Cellar"],["111019","Dark Shadow Vishwada",45,360,57,"Kumrica's Cellar"],["111020","Sharp Shylak",45,360,58,"Collapsed Hall of Fame"],["111021","Immortal Gartua",51,720,15,"Remote Island"],["111022","High Commander Lagta",48,720,57,"Kumrica's Cellar"],["111023","Soul Ruler Kashapa",48,360,54,"Idun's Lake"],["111024","Silent Dartan",48,360,40,"Graverobber Campsite"]]
   .map(([id, name, level, respawn, tp, tpName]) => ({ id, name, level, respawn, tp, tpName }));
@@ -352,9 +414,10 @@ const dur = (s) => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 36
 const words = (s, floor) => { const m = floor ? Math.floor(s / 60) : Math.ceil(s / 60); if (m < 60) return `${m} хв`; const h = Math.floor(m / 60), r = m % 60; return `${h} год${r ? ` ${r} хв` : ""}`; };
 const ago = (s) => { const m = Math.max(0, Math.floor(s / 60)); return m < 60 ? `${m} хв` : `${Math.floor(m / 60)} год ${m % 60} хв`; };
 const resp = (m) => m < 60 ? `${m} хв` : `${String(m / 60).replace(".", ",")} год`;
-const LABEL = { up: "живий", soon: "скоро", dead: "мертвий", late: "мабуть, живий", unk: "час невідомий", none: "немає даних" };
+const LABEL = { up: "живий", likely: "мабуть, живий", soon: "скоро", dead: "мертвий", unk: "час невідомий", none: "немає даних" };
+const tpFull = (b) => `ТП ${b.tp} ${b.tpName}`;
 
-// One boss now: k = up | soon | dead | late | unk | none
+// One boss now: k = up | likely | soon | dead | unk | none
 function compute(now) {
   return BOSSES.map((b) => {
     const e = feed?.bosses?.[b.id];
@@ -370,7 +433,7 @@ function compute(now) {
     if (e.nextSpawn) {
       o.at = e.nextSpawn; o.rem = e.nextSpawn - now;
       o.pct = Math.max(0, Math.min(1, 1 - o.rem / (b.respawn * 60)));
-      if (o.rem < 0) { Object.assign(o, { k: "late", timer: `+${dur(-o.rem)}`, when: `~з ${hm(o.at)}`, cap: "з очікуваної появи, не підтверджено", pairK: "Мав з'явитися о", pairV: hm(o.at), pct: 1 }); }
+      if (o.rem < 0) Object.assign(o, { k: "likely", timer: `+${dur(-o.rem)}`, when: `~з ${hm(o.at)}`, cap: "від очікуваної появи · не підтверджено", pairK: "Мабуть, живий з", pairV: `~${hm(o.at)}`, pct: 1 });
       else Object.assign(o, { k: o.rem <= 1800 ? "soon" : "dead", timer: dur(o.rem), when: `о ${hm(o.at)}`, cap: "до появи", pairK: "З'явиться о", pairV: hm(o.at) });
       return o;
     }
@@ -378,63 +441,82 @@ function compute(now) {
     return o;
   });
 }
-const rank = (b) => b.k === "up" ? [0, b.el] : (b.k === "unk" || b.k === "none") ? [2, 0] : [1, b.rem];
+const rank = (b) => b.k === "up" ? [0, b.el] : b.k === "likely" ? [1, b.rem] : (b.k === "unk" || b.k === "none") ? [3, 0] : [2, b.rem];
 const byRank = (a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1]; };
 const repText = (b) => b.rep == null ? "звітів немає" : `${ago(b.rep)}${b.e?.confirmed ? " · підтв." : ""}`;
+const feedAgeMin = () => feed?.updated ? Math.floor((Date.now() / 1000 - feed.updated) / 60) : 0;
 
 function renderHeader(bs) {
   const conn = $("conn");
-  const loading = !feed;
-  const failed = !!lastErr;
-  conn.className = "conn " + (loading && !failed ? "k-unk" : failed ? "k-late" : "k-up");
-  $("conn-word").textContent = loading && !failed ? "Підключення" : failed ? "Офлайн" : "Онлайн";
-  let text;
-  if (loading && !failed) text = "завантажую дані…";
-  else if (loading) text = `Не вдалося завантажити о ${hm(lastErrAt / 1000)}: ${lastErr}`;
-  else if (failed) text = `Не вдалося оновити о ${hm(lastErrAt / 1000)}, показую дані за ${hm(lastOk / 1000)}`;
-  else text = `Оновлено ${hms(lastOk)}` + (feed.updated ? ` · дані сервера ${ago(Date.now() / 1000 - feed.updated)} тому` : "");
+  const loading = !feed, failed = !!lastErr, age = feedAgeMin(), stale = !loading && age > STALE_AFTER_MIN;
+  let k, word, text;
+  if (loading && !failed) { k = "unk"; word = "Підключення"; text = "завантажую дані…"; }
+  else if (failed) { k = "err"; word = "Офлайн"; text = loading ? `Не вдалося завантажити о ${hm(lastErrAt / 1000)}: ${lastErr}` : `Не вдалося оновити о ${hm(lastErrAt / 1000)}, показую дані за ${hm(lastOk / 1000)}`; }
+  else if (stale) { k = "stale"; word = "Дані застаріли"; text = `сервер не оновлювався ${age} хв · Оновлено ${hms(lastOk)}`; }
+  else { k = "up"; word = "Онлайн"; text = `Оновлено ${hms(lastOk)}` + (feed.updated ? ` · дані сервера ${age} хв тому` : ""); }
+  conn.className = `conn k-${k}`;
+  $("conn-word").textContent = word;
   $("conn-text").textContent = text;
   $("refresh").textContent = failed ? "Повторити" : "Оновити";
 
   const f = $("finding");
   if (loading) { setHTML(f, '<span class="sk" style="width:min(100%,34rem);height:0.9em"></span>'); return; }
-  const mine = bs.filter((b) => b.fav);
-  const alive = mine.filter((b) => b.k === "up").sort((a, b) => b.el - a.el);
-  const next = mine.filter((b) => b.at != null && b.rem >= 0).sort((a, b) => a.rem - b.rem);
+  const mine = bs.filter((b) => b.fav).sort(byRank);
+  const aliveF = mine.find((b) => b.k === "up"), likF = mine.find((b) => b.k === "likely");
+  const nextF = mine.filter((b) => b.at != null && b.rem >= 0).sort((a, b) => a.rem - b.rem)[0];
   const parts = [];
-  if (alive.length) { const a = alive[0]; parts.push(`Зараз живий: <b>${esc(a.name)}</b> (ТП ${a.tp}), уже <b class="up">${words(a.el, true)}</b>. `); }
-  if (next.length) { const n = next[0]; parts.push(`Наступний із твоїх: <b>${esc(n.name)}</b> о <b>${hm(n.at)}</b>, через <b>${words(n.rem)}</b>. `); }
+  if (aliveF) parts.push(`Зараз живий: <b>${esc(aliveF.name)}</b> (ТП ${aliveF.tp}), уже <b class="up">${words(aliveF.el, true)}</b>. `);
+  else if (likF) parts.push(`Мабуть, живий: <b>${esc(likF.name)}</b> (ТП ${likF.tp}), мав з’явитися о ${hm(likF.at)}, перевір. `);
+  if (nextF) parts.push(`Наступний із твоїх: <b>${esc(nextF.name)}</b> о <b>${hm(nextF.at)}</b>, через <b>${words(nextF.rem)}</b>. `);
   if (!mine.length) {
     const n = bs.filter((b) => b.at != null && b.rem >= 0).sort((a, b) => a.rem - b.rem)[0];
     if (n) parts.push(`Найближча поява: <b>${esc(n.name)}</b> о <b>${hm(n.at)}</b>, через <b>${words(n.rem)}</b>. `);
   }
-  const nLate = bs.filter((b) => b.k === "late").length;
-  parts.push(`Живих в Altgard: <b class="up">${bs.filter((b) => b.k === "up").length}</b> з ${BOSSES.length}` + (nLate ? `, ще <b>${nLate}</b>, мабуть, уже з'явились (не підтверджено).` : "."));
+  const nUp = bs.filter((b) => b.k === "up").length, nLik = bs.filter((b) => b.k === "likely").length;
+  parts.push(`Живих в Altgard: <b class="up">${nUp}</b> з ${BOSSES.length}`);
+  if (nLik) parts.push(`, ще <b class="likely">${nLik}</b>, мабуть, уже з’явились (не підтверджено)`);
+  parts.push(".");
+  if (stale) parts.push(` <span class="warn">Стрічка стоїть ${age} хв, тож цифри можуть бути неточні.</span>`);
   setHTML(f, parts.join(""));
 }
 
+const unfav = (b) => `<button type="button" class="unfav" data-fav="${b.id}" aria-label="Прибрати ${esc(b.name)} з моїх" title="Прибрати з моїх">★</button>`;
+const markWord = (b, cls) => `<span class="${cls}"><span class="mark"></span>${LABEL[b.k]}</span>`;
 function renderCards(bs) {
   const box = $("cards");
   const loading = !feed;
-  const mine = bs.filter((b) => b.fav).sort(byRank);
-  if (!mine.length) {
+  const mine = bs.filter((b) => b.fav).sort(byRank), n = mine.length;
+  $("fav-count").textContent = n ? String(n) : "";
+  $("copy-link").hidden = !n;
+  if (!n) {
     box.className = "";
-    setHTML(box, '<div class="empty-box"><div class="t">Ти ще не стежиш за жодним босом</div><div class="s">Натисни ☆ біля боса у списку «Усі боси», і тут з’явиться його великий таймер. Зазвичай стежать за 1–4 босами.</div></div>');
+    setHTML(box, '<div class="empty-box"><div class="t">Ти ще не стежиш за жодним босом</div><div class="s">Натисни ☆ біля боса у списку «Усі боси», і тут з’явиться його таймер.</div></div>');
     return;
   }
-  const compact = mine.length >= 3;
-  box.className = compact ? "cards compact" : "cards";
-  if (compact) {
+  const skT = (w, h) => `<span class="sk" style="width:${w};height:${h}"></span>`;
+  if (n >= 5) {
+    box.className = "clist";
+    setHTML(box, mine.map((b) => `<div class="citem k-${b.k}">
+      ${unfav(b)}
+      <span class="name ell" title="${esc(b.name)}">${esc(b.name)}</span>
+      <span class="t">${loading ? skT("4rem", "1rem") : b.timer}</span>
+      <span class="stline">${loading ? skT("4.5rem", "0.75rem") : markWord(b, "st")}<span class="tpx ell" title="${esc(tpFull(b))}">${esc(tpFull(b))}</span></span>
+      <span class="when">${loading ? "" : esc(b.when)}</span>
+      ${loading ? "" : `<div class="bar" style="width:${Math.round(b.pct * 100)}%"></div>`}
+    </div>`).join(""));
+    return;
+  }
+  if (n >= 3) {
+    box.className = "cards mid";
     setHTML(box, mine.map((b) => `<article class="card k-${b.k}">
-      <div class="card-head">
-        <div class="card-name"><button type="button" data-fav="${b.id}" aria-label="Прибрати ${esc(b.name)} з моїх" title="Прибрати з моїх">★</button><h3>${esc(b.name)}</h3></div>
-      </div>
-      <div class="timer-row">${loading ? '<span class="sk" style="width:7rem;height:var(--fs-xl)"></span>' : `<span class="timer">${b.timer}</span><span class="badge"><span class="mark"></span>${LABEL[b.k]}</span><span class="cap">${esc(b.when)}</span>`}</div>
-      <div class="meta">ТП ${b.tp} ${esc(b.tpName)} · ${b.level} рів. · кожні ${resp(b.respawn)}</div>
+      <div class="card-top">${unfav(b)}<span class="name ell" title="${esc(b.name)}">${esc(b.name)}</span></div>
+      <div class="timer-row">${loading ? skT("7rem", "var(--fs-timer-m)") : `<span class="timer">${b.timer}</span><span class="when">${esc(b.when)}</span>`}</div>
+      <div class="stline">${loading ? skT("4.5rem", "0.75rem") : markWord(b, "st")}<span class="tpx ell" title="${esc(tpFull(b))}">${esc(tpFull(b))}</span></div>
       <div class="cycle"><i style="width:${loading ? 0 : Math.round(b.pct * 100)}%"></i></div>
     </article>`).join(""));
     return;
   }
+  box.className = "cards";
   setHTML(box, mine.map((b) => {
     const pairs = [
       [b.pairK, loading ? null : b.pairV],
@@ -444,11 +526,11 @@ function renderCards(bs) {
     ];
     return `<article class="card k-${b.k}">
       <div class="card-head">
-        <div class="card-name"><button type="button" data-fav="${b.id}" aria-label="Прибрати ${esc(b.name)} з моїх" title="Прибрати з моїх">★</button><h3>${esc(b.name)}</h3><span class="lvl">${b.level} рів.</span></div>
-        ${loading ? '<span class="sk" style="width:4.5rem;height:1.25rem"></span>' : `<span class="badge"><span class="mark"></span>${LABEL[b.k]}</span>`}
+        <div class="card-name">${unfav(b)}<h3>${esc(b.name)}</h3><span class="lvl">${b.level} рів.</span></div>
+        ${loading ? skT("4.5rem", "1.25rem") : markWord(b, "badge")}
       </div>
-      <div class="timer-row">${loading ? '<span class="sk" style="width:11rem;height:var(--fs-timer)"></span>' : `<span class="timer">${b.timer}</span><span class="cap">${b.cap}</span>`}</div>
-      <dl class="pairs">${pairs.map(([k, v]) => `<div><dt>${esc(k)}</dt>${v == null ? '<dd><span class="sk" style="width:6rem;height:1em"></span></dd>' : `<dd>${esc(v)}</dd>`}</div>`).join("")}</dl>
+      <div class="timer-row">${loading ? skT("11rem", "var(--fs-timer)") : `<span class="timer">${b.timer}</span><span class="cap">${b.cap}</span>`}</div>
+      <dl class="pairs">${pairs.map(([k, v]) => `<div><dt>${esc(k)}</dt>${v == null ? `<dd>${skT("6rem", "1em")}</dd>` : `<dd>${esc(v)}</dd>`}</div>`).join("")}</dl>
       <div class="cycle"><i style="width:${loading ? 0 : Math.round(b.pct * 100)}%"></i></div>
     </article>`;
   }).join(""));
@@ -461,15 +543,19 @@ function renderUpcoming(bs) {
     setHTML(box, [9, 7, 11, 8, 10, 6, 9, 8].map((w) => `<div class="sk-row"><span class="sk" style="height:0.9rem"></span><span class="sk" style="height:0.8rem;width:${w}rem"></span><span class="sk" style="height:0.8rem"></span></div>`).join(""));
     return;
   }
-  const n = favs.size ? 8 : 12;
-  const due = bs.filter((b) => b.at != null).sort((a, b) => a.rem - b.rem).slice(0, n);
-  $("up-note").textContent = due.length ? `наступні ${due.length}` : "";
-  if (!due.length) { setHTML(box, '<div class="empty-box"><div class="s">Немає відомих часів появи. Вони з’являться, щойно хтось побачить мертвого боса на мапі.</div></div>'); return; }
-  let html = "", lastH = null;
-  for (const b of due) {
-    const d = new Date(b.at * 1000), h = d.getHours();
+  const nf = favs.size, n = nf === 0 ? 12 : nf >= 8 ? 6 : 8;
+  const top = bs.filter((b) => b.at != null).sort((a, b) => a.rem - b.rem).slice(0, n);
+  $("up-note").textContent = top.length ? `наступні ${top.length}` : "";
+  if (!top.length) { setHTML(box, '<div class="empty-box"><div class="s">Немає відомих часів появи. Вони з’являться, щойно хтось побачить мертвого боса на мапі.</div></div>'); return; }
+  const item = (b) => `<div class="up-row k-${b.k}${b.fav ? " fav" : ""}"><span class="time">${b.k === "likely" ? "~" : ""}${hm(b.at)}</span><span class="who"><span class="name ell" title="${esc(b.name)}">${b.fav ? "★ " : ""}${esc(b.name)}</span><span class="note">ТП ${b.tp}</span></span><span class="in">${b.rem < 0 ? "+" + words(-b.rem, true) : "через " + words(b.rem)}</span></div>`;
+  let html = "";
+  const lik = top.filter((b) => b.k === "likely");
+  if (lik.length) html += `<div class="group likely">Мабуть, уже з’явились · перевір на мапі</div>` + lik.map(item).join("");
+  let lastH = null;
+  for (const b of top.filter((x) => x.k !== "likely")) {
+    const h = new Date(b.at * 1000).getHours();
     if (h !== lastH) { html += `<div class="group">${pad(h)}:00 – ${pad((h + 1) % 24)}:00</div>`; lastH = h; }
-    html += `<div class="up-row k-${b.k}${b.fav ? " fav" : ""}"><span class="time">${hm(b.at)}</span><span class="who"><span>${b.fav ? "★ " : ""}${esc(b.name)}</span><span class="note">ТП ${b.tp}</span></span><span class="in">${b.rem < 0 ? "+" + words(-b.rem) : "через " + words(b.rem)}</span></div>`;
+    html += item(b);
   }
   setHTML(box, html);
 }
@@ -477,12 +563,12 @@ function renderUpcoming(bs) {
 const FILTERS = [["all", "Усі"], ["up", "Живі"], ["soon", "До 30 хв"], ["mine", "Мої"]];
 function renderList(bs) {
   const loading = !feed;
-  const counts = { all: BOSSES.length, up: bs.filter((b) => b.k === "up" || b.k === "late").length, soon: bs.filter((b) => b.k === "soon").length, mine: favs.size };
+  const counts = { all: BOSSES.length, up: bs.filter((b) => b.k === "up" || b.k === "likely").length, soon: bs.filter((b) => b.k === "soon").length, mine: favs.size };
   setHTML($("filters"), FILTERS.map(([id, label]) => `<button type="button" class="filter" data-filter="${id}" aria-pressed="${filter === id}"><span>${label}</span><span class="count">${loading && id !== "all" && id !== "mine" ? "–" : counts[id]}</span></button>`).join(""));
 
   const raw = $("q").value.trim();
   const qq = raw.toLowerCase().replace(/^тп\s*/, "");
-  let list = [...bs].sort(byRank).filter((b) => filter === "all" || (filter === "up" && (b.k === "up" || b.k === "late")) || (filter === "soon" && b.k === "soon") || (filter === "mine" && b.fav));
+  let list = [...bs].sort(byRank).filter((b) => filter === "all" || (filter === "up" && (b.k === "up" || b.k === "likely")) || (filter === "soon" && b.k === "soon") || (filter === "mine" && b.fav));
   if (qq) list = list.filter((b) => b.name.toLowerCase().includes(qq) || b.tpName.toLowerCase().includes(qq) || String(b.tp) === qq);
   $("shown").textContent = list.length === BOSSES.length ? String(BOSSES.length) : `${list.length} з ${BOSSES.length}`;
 
@@ -501,18 +587,17 @@ function renderList(bs) {
 }
 function rowHtml(b) {
   const loading = !feed;
-  const star = b.fav ? "★" : "☆";
   const label = b.fav ? `Прибрати ${b.name} з моїх` : `Додати ${b.name} до моїх`;
   const bar = !loading && b.k !== "unk" && b.k !== "none" ? `<div class="bar" style="width:${Math.round(b.pct * 100)}%"></div>` : "";
   const state = loading
     ? '<span class="sk" style="height:0.875rem;width:4.5rem;margin:0.125rem 0"></span><span class="sk" style="height:0.75rem;width:6.5rem;margin:0.125rem 0"></span>'
-    : `<span class="state-word"><span class="mark"></span>${LABEL[b.k]}</span><span class="b">${esc(repText(b))}</span>`;
+    : `${markWord(b, "state-word")}<span class="b">${esc(repText(b))}</span>`;
   const timer = loading
     ? '<span class="sk" style="height:1rem;width:5rem;margin:0.125rem 0"></span><span class="sk" style="height:0.75rem;width:3.5rem;margin:0.125rem 0"></span>'
     : `<span class="t">${b.timer}</span><span class="b when">${esc(b.when)}</span>`;
   return `<div class="row k-${b.k}${b.fav ? " fav" : ""}${b.stale ? " stale" : ""}">
-    <div class="boss"><button type="button" class="star" data-fav="${b.id}" aria-pressed="${b.fav}" aria-label="${esc(label)}" title="${b.fav ? "Прибрати з моїх" : "Додати до моїх"}">${star}</button>
-      <div class="stack"><div class="name-line"><span class="name">${esc(b.name)}</span><span class="lvl">${b.level} рів.</span></div><div class="tp"><b>ТП ${b.tp}</b> ${esc(b.tpName)}</div></div></div>
+    <div class="boss"><button type="button" class="star" data-fav="${b.id}" aria-pressed="${b.fav}" aria-label="${esc(label)}" title="${b.fav ? "Прибрати з моїх" : "Додати до моїх"}">${b.fav ? "★" : "☆"}</button>
+      <div class="stack"><div class="name-line"><span class="name ell" title="${esc(b.name)}">${esc(b.name)}</span><span class="lvl">${b.level} рів.</span></div><div class="tp ell" title="${esc(tpFull(b))}"><b>ТП ${b.tp}</b> ${esc(b.tpName)}</div></div></div>
     <div class="fields"><div class="stack"><span class="a">${resp(b.respawn)}</span><span class="b q">респавн</span></div><div class="stack">${state}</div><div class="stack end">${timer}</div></div>
     ${bar}</div>`;
 }
@@ -577,20 +662,23 @@ $("notify").addEventListener("click", async () => {
   }
   store.set("notify", notifyOn); renderNotify();
 });
+let copyTimer;
+$("copy-link").addEventListener("click", async () => {
+  writeHash();
+  const btn = $("copy-link"), url = location.href;
+  try { await navigator.clipboard.writeText(url); }
+  catch { window.prompt("Скопіюй посилання:", url); return; }
+  btn.textContent = "✓ Скопійовано"; btn.classList.add("done");
+  clearTimeout(copyTimer);
+  copyTimer = setTimeout(() => { btn.textContent = "Скопіювати посилання"; btn.classList.remove("done"); }, 2000);
+});
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 window.addEventListener("hashchange", () => {
   const ids = favsFromHash();
   if (ids) { favs = new Set(ids); store.set("favs", ids); render(); }
 });
-$("copy-link").addEventListener("click", async () => {
-  writeHash();
-  const btn = $("copy-link"), url = location.href, was = btn.textContent;
-  try { await navigator.clipboard.writeText(url); btn.textContent = "Скопійовано"; }
-  catch { window.prompt("Скопіюй посилання:", url); }
-  setTimeout(() => { btn.textContent = was; }, 2000);
-});
-writeHash();
 
+writeHash();
 renderNotify();
 render();
 load();
